@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+PRJ_ROOT="$(dirname "${BASH_SOURCE[0]}")/.."
+PRJ_ROOT="$(cd "${PRJ_ROOT}" && pwd -P)"
+
+# shellcheck source=../scripts/main.sh
+source "${PRJ_ROOT}/scripts/main.sh"
+sh.lib.import dist
+sh.lib.import lxc-incus
+
+MAIN_CMD_LIST=(
+    "prepare"
+    "image: image.copy"
+    "instance: instance.init instance.del instance.start instance.stop instance.share"
+    "suite: suite.info suite.build"
+)
+
+prepare.help() {
+    $FMT <<EOF
+install tools required by ${MAIN} (sudo)
+
+usage:
+  ${MAIN} ${MAIN_CMD}
+
+To install packages from ${DIST_ID}'s package manager, super user privileges are
+needed (sudo/su).
+EOF
+    lxc.base.packages
+}
+
+prepare() {
+    TITLE="Install tools required by ${MAIN}" lxc.base.install
+}
+
+suite.info.help() { lxc.suite.info.help; }
+suite.info() {
+    lxc.suite.env.load lxc
+    lxc.suite.info "$@"
+}
+
+suite.build.help() { lxc.suite.build.help; }
+suite.build() {
+    lxc.suite.env.load lxc
+    lxc.suite.build "$@"
+}
+
+image.copy.help() { _CMD='image.copy' lxc.image.copy.help; }
+image.copy() { lxc.image.copy "$@"; }
+
+instance.init.help() { lxc.instance.init.help; }
+instance.init() { lxc.instance.init "$@"; }
+instance.del.help() { lxc.instance.del.help; }
+instance.del() { lxc.instance.del "$@"; }
+instance.start.help() { lxc.instance.start.help; }
+instance.start() { lxc.instance.start "$@"; }
+instance.stop.help() { lxc.instance.stop.help; }
+instance.stop() { lxc.instance.stop "$@"; }
+instance.share.help() { lxc.instance.share.help; }
+instance.share() { lxc.instance.share "$@"; }
+
+main "$@"
