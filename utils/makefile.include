@@ -1,0 +1,11 @@
+# -*- mode: makefile-gmake -*-
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+.DEFAULT_GOAL=help
+
+V ?= 0
+Q = @
+ifeq ($(shell test $(V) -gt 0; echo $$?),0)
+	Q =
+endif
+export Q
