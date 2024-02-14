@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+[project]
+
+dynamic = ["version"]  # see [tool.setuptools.dynamic]
+
+name = "incus-suite"
+description = "manage incus containers more comfortable in suites "
+readme = "README.rst"
+requires-python = ">=3.11"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+keywords = ["incus-suite", "development"]
+authors = [
+  {name = "Markus Heiser", email = "markus.heiser@darmarit.de" }
+]
+maintainers = [
+  {name = "Markus Heiser", email = "markus.heiser@darmarit.de" }
+]
+
+classifiers = [
+  # For a list of valid classifiers, see https://pypi.org/classifiers/
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "Programming Language :: Python",
+]
+
+dependencies = [
+]
+
+[project.optional-dependencies]
+# pip install -e .[dev,test]
+dev = [
+  "build",
+  "Sphinx",
+]
+test = [
+  "pylint",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/return42/incus-suite"
+"Bug Reports" = "https://github.com/return42/incus-suite/issues"
+"Source" = "https://github.com/return42/incus-suite/"
+
+# [project.scripts]
+# incus-suite = "incus_suite.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+# [tool.setuptools.packages.find]
+# where = ["src/"]
+
+[tool.setuptools.package-data]
+# https://setuptools.pypa.io/en/latest/userguide/datafiles.html
+# incus_suite = ["*.dat", "*/*.dat", "*/*/*.dat"]
+
+[tool.setuptools.dynamic]
+# version = {attr = "incus_suite.__pkginfo__.VERSION"}
+
+[build-system]
+requires = ["setuptools>=77.0.0", "wheel"]
+build-backend = "setuptools.build_meta"

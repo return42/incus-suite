@@ -1,0 +1,20 @@
+# -*- mode: conf-toml -*-
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[BASIC]
+
+# Good variable names which should always be accepted, separated by a comma
+good-names=c,f,i,j,k,_,log,cfg
+
+[TYPECHECK]
+
+# List of decorators that change the signature of a decorated function.
+# https://pylint.pycqa.org/en/latest/user_guide/configuration/all-options.html#signature-mutators
+signature-mutators=\
+  click.decorators.option,
+  click.decorators.argument,
+  click.decorators.version_option,
+  click.decorators.help_option,
+  click.decorators.pass_context,
+  click.decorators.confirmation_option
+

@@ -1,0 +1,7 @@
+external-sources=true
+
+# In POSIX sh, echo flags are undefined.
+disable=SC3037
+
+# In POSIX sh, naming functions outside [a-zA-Z_][a-zA-Z0-9_]* is undefined.
+disable=SC3033

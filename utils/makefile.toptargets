@@ -1,0 +1,21 @@
+# -*- mode: makefile-gmake -*-
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# run make in subdirectories
+# --------------------------
+
+# Makefiles in subdirs needs to define TOPTARGETS::
+#    .PHONY: all clean
+
+ifeq ($(TOPTARGETS),)
+	TOPTARGETS := all clean
+endif
+SUBDIRS := $(dir $(wildcard */Makefile))
+PHONY += $(TOPTARGETS)
+
+$(TOPTARGETS)::
+	@for dir in $(SUBDIRS); do \
+		$(MAKE) -C $$dir $@ || exit $$?; \
+	done; \
+
+.PHONY: $(PHONY)

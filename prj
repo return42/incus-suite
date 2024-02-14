@@ -1,0 +1,251 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# export LANG=C
+PRJ_ROOT="$(dirname "${BASH_SOURCE[0]}")"
+PRJ_ROOT="$(cd "${PRJ_ROOT}" && pwd -P)"
+# shellcheck source=scripts/main.sh
+source "${PRJ_ROOT}/scripts/main.sh"
+
+# shellcheck source=scripts/lib_py.sh
+. /dev/null
+sh.lib.import py
+
+# shellcheck source=./scripts/lib_dist.sh
+. /dev/null
+sh.lib.import dist
+
+sh.lib.import lxc-suite
+
+# commands needed for the developer environment
+PRJ_DEV_REQUIREMENTS=(shfmt)
+# packages that provide these commands
+PRJ_DEV_PACKAGES=(shfmt)
+
+MAIN_CMD_LIST=(
+    "install"
+    "uninstall"
+    "prepare"
+    "fmt: fmt.shell"
+    "env: env.build env.drop"
+    "cmd"
+    "test: test.all"
+    "shell"
+)
+
+# install / uninstall
+# -------------------
+
+__bin_folder() {
+
+    if [ -d "$HOME/bin" ]; then
+        echo "$HOME/bin"
+    elif [ -d "$HOME/.local/bin" ]; then
+        echo "$HOME/.local/bin"
+    else
+        sh.die 42 "one of the folders is required: $HOME/bin or $HOME/.local/bin"
+    fi
+}
+
+install.help() { echo "install commands from ${PRJ_ROOT}/bin"; }
+install() {
+    set -e
+    local cmd dest
+
+    dest="$(__bin_folder)"
+    for cmd in "${PRJ_ROOT}/bin"/*.sh; do
+        if [ -f "${cmd}" ]; then
+            echo "${dest}/$(basename "${cmd//.sh/}") --> ${cmd}"
+            ln -s "${cmd}" "${dest}/$(basename "${cmd//.sh/}")"
+        fi
+    done
+}
+
+uninstall.help() { echo "uninstall commands from ${PRJ_ROOT}/bin"; }
+uninstall() {
+
+    set -e
+    local cmd dest
+
+    dest="$(__bin_folder)"
+    for cmd in "${PRJ_ROOT}/bin"/*.sh; do
+        if [ -f "${cmd}" ]; then
+            echo "delete ${dest}/$(basename "${cmd//.sh/}")"
+            rm -f "${dest}/$(basename "${cmd//.sh/}")"
+        fi
+    done
+}
+
+# prepare
+# -------
+
+prepare.help() { lxc.base.install.help; }
+prepare() {
+    lxc.base.install
+    TITLE="Installing the developer tools required by ${MAIN}" dist.pkg.install "${PRJ_DEV_PACKAGES[@]}"
+}
+
+__prepared() {
+    scripts.requires "${PRJ_DEV_REQUIREMENTS[@]}" ||
+        sh.die.err $? "first install missing requirements, use '${MAIN} prepare --help' for more info"
+}
+
+# format
+# ------
+
+fmt.shell.help() { echo "format shell scripts"; }
+fmt.shell() {
+    __prepared
+    (
+        set -e
+        shfmt -w prj scripts/ ./scripts/ ./bin/ ./suites/
+    )
+    sh.prompt-err $?
+}
+
+# env
+# ---
+
+env.build.help() { echo "build project's developer environment"; }
+env.build() {
+    __prepared
+    py.env.build
+    # https://setuptools.pypa.io/en/latest/userguide/development_mode.html
+    "${PY_VENV}/bin/pip" install -e ".[dev,test]"
+    env.build.post
+}
+
+env.build.post() {
+    env.source
+}
+
+env.drop.help() { echo "remove artifacts from the local developer environment"; }
+env.drop() {
+    py.env.drop
+}
+
+env.source() {
+    py.env.activate
+    echo "" >/dev/null
+}
+
+# cmd
+# ---
+
+cmd.help() { echo "run command in project's environment"; }
+cmd() {
+    __prepared
+    (
+        set -e
+        # FIXME ..
+        # env.source
+        "$@"
+    )
+    sh.prompt-err $?
+}
+
+clean.help() { echo "clean up project folders"; }
+clean() {
+    (
+        set -e
+        msg.build CLEAN "clean up project folder"
+        py.clean
+    )
+    sh.prompt-err $?
+}
+
+# test
+# ----
+
+test.all.help() {
+    $FMT <<EOF
+run project's test needed to pass quality gate
+
+To run really all tests, better use::
+
+  make test
+
+which will call this test procedure also.
+EOF
+}
+test.all() {
+    (
+        set -e
+        test.bin
+        test.etc
+        test.suites
+        test.scripts
+
+    )
+    sh.prompt-err $?
+}
+
+test.bin.help() { echo "run tests (shellcheck) on ./bin/*"; }
+test.bin() {
+    (
+        set -e
+        msg.build TEST "shellcheck scripts in ./bin/*"
+        pushd ./bin &>/dev/null
+        shellcheck -x -s bash ./* |
+            sed 's/In \.\//In bin\//'
+        popd &>/dev/null
+    )
+    sh.prompt-err $?
+}
+
+test.etc.help() { echo "run tests (shellcheck) on ./etc/*.env"; }
+test.etc() {
+    (
+        set -e
+        msg.build TEST "shellcheck scripts in ./etc/*.env"
+        pushd ./etc &>/dev/null
+        shellcheck -x -s bash ./*.env |
+            sed 's/In \.\//In etc\//'
+        popd &>/dev/null
+    )
+    sh.prompt-err $?
+}
+
+test.suites.help() { echo "run tests (shellcheck) on ./suites/*"; }
+test.suites() {
+    (
+        set -e
+        msg.build TEST "shellcheck scripts in ./suites/"
+        pushd ./suites &>/dev/null
+        shellcheck -x -s bash ./*/*.env ./*/*.sh |
+            sed 's/In \.\//In suites\//'
+        popd &>/dev/null
+
+    )
+    sh.prompt-err $?
+}
+
+test.scripts.help() { echo "run tests (shellcheck) on ./scripts/*"; }
+test.scripts() {
+    (
+        set -e
+        msg.build TEST "shellcheck scripts in ./scripts/"
+        pushd scripts/ &>/dev/null
+        shellcheck -x -s bash ./*.sh |
+            sed 's/In \.\//In scripts\//'
+        popd &>/dev/null
+    )
+    sh.prompt-err $?
+}
+
+# shell
+# -----
+
+shell.help() { echo "start a shell in project's environment"; }
+shell() {
+    (
+        set -e
+        env.source
+        bash --rcfile <(
+            cat "${PY_VENV}/bin/.pysandbox-complete.bash"
+        )
+    )
+    sh.prompt-err $?
+}
+
+main "$@"
