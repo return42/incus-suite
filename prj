@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# export LANG=C
+PRJ_ROOT="$(dirname "${BASH_SOURCE[0]}")"
+PRJ_ROOT="$(cd "${PRJ_ROOT}" && pwd -P)"
+
+# shellcheck source=scripts/main.sh
+source "${PRJ_ROOT}/scripts/main.sh"
+
+sh.lib.import py
+
+MAIN_CMD_LIST=(
+    "env: env.build"
+    "cmd"
+    "test: test.bin test.suites"
+    "shell"
+)
+
+env.build.help() { echo "build project's developer environment"; }
+env.build() {
+    py.env.build
+    # https://setuptools.pypa.io/en/latest/userguide/development_mode.html
+    "${PY_VENV}/bin/pip" install -e ".[dev,test]"
+
+    env.build.post
+}
+
+env.build.post() {
+    env.source
+}
+
+env.source() {
+    py.env.activate
+    echo "" > /dev/null
+}
+
+
+cmd.help() { echo "run command in project's environment"; }
+cmd() {
+    (   set -e
+	# FIXME ..
+	# env.source
+        "$@"
+    )
+    sh.prompt-err $?
+}
+
+clean.help() { echo "clean up project folders"; }
+clean() {
+    (   set -e
+	msg.build CLEAN "clean up project folder"
+	py.clean
+    )
+    sh.prompt-err $?
+}
+
+test.help() {
+    $FMT <<EOF
+run project's test needed to pass quality gate
+
+To run really all tests, better use::
+
+  make test
+
+which will call this test procedure also.
+EOF
+}
+
+test() {
+    (   set -e
+	test.suites
+	test.bin
+
+	msg.build TEST "shellcheck ./prj"
+	shellcheck -x -s bash ./prj
+	# msg.build TEST "pylint ./src"
+	# cmd pylint ./src
+
+    )
+    sh.prompt-err $?
+}
+
+
+test.bin.help() { echo "run tests (shellcheck) on ./bin/*"; }
+test.bin() {
+    (   set -e
+	msg.build TEST "shellcheck scripts in ./bin/*"
+	pushd ./bin &> /dev/null
+	shellcheck -x -s bash ./*
+	popd &> /dev/null
+    )
+    sh.prompt-err $?
+}
+
+test.suites.help() { echo "run tests (shellcheck) on ./scripts/*"; }
+test.suites() {
+    (   set -e
+	msg.build TEST "shellcheck scripts in ./suites/"
+	shellcheck -x -s bash ./suites/*/*.env ./suites/*/*.sh
+    )
+    sh.prompt-err $?
+}
+
+shell.help() { echo "start a shell in project's environment"; }
+shell() {
+    (   set -e
+	env.source
+        bash --rcfile <(
+	    cat "${PY_VENV}/bin/.pysandbox-complete.bash";
+	)
+    )
+    sh.prompt-err $?
+}
+
+
+main "$@"
