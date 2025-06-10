@@ -37,7 +37,8 @@ lxc.lxcenv.write() {
     local lxcenv_template
     lxcenv_template="$(dirname "${BASH_SOURCE[0]}")/.lxcenv.template"
 
-    exec 3> >(incus exec "${1}" -- bash)
+    # scheinbar wird die pipe  nicht korrekt geschlossen,
+    exec 3> >(incus exec "${1}" -- bash --norc --noprofile)
     echo "cat > /.lxcenv" >&3
     # shellcheck disable=SC2086
     eval "echo \"$(cat "${lxcenv_template}")\"" >&3

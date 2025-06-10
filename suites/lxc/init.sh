@@ -2,6 +2,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # shellcheck disable=SC1091
+echo "XXXXX -----------------------"
+cat /.lxcenv  # erster lese zugriff .. datei existiert, ist aber leer
+echo "XXXXX return code, erster lese zugriff: $?"
+echo "XXXXX -----------------------"
+cat /.lxcenv  # zweiter lese zugriff .. datei existiert und kann gelesen werden
+echo "XXXXX return code, zweiter lese zugriff: $?"
+echo "XXXXX -----------------------"
+exit
+
 source /.lxcenv
 
 # shellcheck source=../../scripts/main.sh
