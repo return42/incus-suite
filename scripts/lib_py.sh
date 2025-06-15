@@ -1,7 +1,21 @@
 # -*- mode: sh; sh-shell: bash -*-
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-_REQUIREMENTS=( "${_REQUIREMENTS[@]}" python)
+_REQUIREMENTS=("${_REQUIREMENTS[@]}" python3)
+
+# shellcheck source=./lib_dist.sh
+. /dev/null
+sh.lib.import dist
+
+PY_OS_PYTHON=python
+PY_OS_PIP=pip
+
+case ${DIST_ID} in
+    ubuntu | debian)
+        PY_OS_PYTHON=python3
+        PY_OS_PIP=pip3
+        ;;
+esac
 
 # FIXME: what is with this path names, when we are in a LXC instance?
 PY_VENV="${PRJ_ROOT-.}/.venv"
@@ -19,7 +33,8 @@ EOF
 
 py.clean() {
     msg.build CLEAN "clean up python environment and remnants"
-    (   set -e
+    (
+        set -e
         py.env.drop
         rm -rf ./.tox ./*.egg-info
         find . -name '*.pyc' -exec rm -f {} +
@@ -35,8 +50,10 @@ py.env.activate() {
 
 py.env.build() {
     msg.build ENV "build ${PY_VENV}"
+    msg.debug "[py.env.build] PY_OS_PYTHON=${PY_OS_PYTHON}"
+    msg.debug "[py.env.build] PY_OS_PIP=${PY_OS_PIP}"
     # https://docs.python.org/3/library/venv.html
-    python -m venv "$PY_VENV"
+    "${PY_OS_PYTHON}" -m venv "$PY_VENV"
     "${PY_VENV}/bin/python" -m pip install --upgrade pip
 }
 

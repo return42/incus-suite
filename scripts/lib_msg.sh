@@ -19,12 +19,12 @@ fi
 
 msg.debug() {
     if [ "${V}" -ge 3 ]; then
-    echo -e "${_BYellow}DEBUG:${_creset} $*" >&2
+        echo -e "${_BYellow}DEBUG:${_creset} $*" >&2
     fi
 }
-msg.info()  { echo -e "${_BYellow}INFO:${_creset}  $*" >&2; }
-msg.warn()  { echo -e "${_BBlue}WARN:${_creset}  $*" >&2; }
-msg.err()   { echo -e "${_BRed}ERROR:${_creset} $*" >&2; }
+msg.info() { echo -e "${_BYellow}INFO:${_creset}  $*" >&2; }
+msg.warn() { echo -e "${_BBlue}WARN:${_creset}  $*" >&2; }
+msg.err() { echo -e "${_BRed}ERROR:${_creset} $*" >&2; }
 
 msg.build() {
 
@@ -44,9 +44,9 @@ msg.title() {
     # Print reST formated title to stdout.
 
     case ${2-chapter} in
-        part)     printf "\n${_BGreen}${1//?/=}${_creset}\n${_BCyan}%s${_creset}\n${_BGreen}${1//?/=}${_creset}\n" "${1}";;
-        chapter)  printf "\n${_BCyan}%s${_creset}\n${_BGreen}${1//?/=}${_creset}\n" "${1}";;
-        section)  printf "\n${_BCyan}%s${_creset}\n${_BGreen}${1//?/-}${_creset}\n" "${1}";;
+        part) printf "\n${_BGreen}${1//?/=}${_creset}\n${_BCyan}%s${_creset}\n${_BGreen}${1//?/=}${_creset}\n" "${1}" ;;
+        chapter) printf "\n${_BCyan}%s${_creset}\n${_BGreen}${1//?/=}${_creset}\n" "${1}" ;;
+        section) printf "\n${_BCyan}%s${_creset}\n${_BGreen}${1//?/-}${_creset}\n" "${1}" ;;
         *)
             msg.err "invalid argument '${2}' in line $(caller)"
             return 42
@@ -69,7 +69,7 @@ msg.para() {
     fi
 }
 
-msg.prefix () {
+msg.prefix() {
 
     # usage:  <cmd> | msg.prefix [prefix]
     #
@@ -77,11 +77,11 @@ msg.prefix () {
 
     local prefix="${_BYellow}-->|${_creset}"
 
-    if [[ -n $1 ]] ; then prefix="$1"; fi
+    if [[ -n $1 ]]; then prefix="$1"; fi
 
     # shellcheck disable=SC2162
     while IFS= read line; do
-         echo -e "${prefix}$line"
+        echo -e "${prefix}$line"
     done
     # some piped commands hide the cursor, show cursory when the stream ends
     echo -en "$_show_cursor"

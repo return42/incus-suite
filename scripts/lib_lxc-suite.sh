@@ -14,7 +14,7 @@ sh.lib.import lxc-incus
 
 sh.lib.import lxcenv
 
-_REQUIREMENTS=( "${_REQUIREMENTS[@]}" column)
+_REQUIREMENTS=("${_REQUIREMENTS[@]}" column)
 
 # Folder where the suites are located
 LXC_SUITES_FOLDER="${LXC_SUITES_FOLDER:-${LXC_ROOT_FOLDER}/suites}"
@@ -31,7 +31,7 @@ lxc.suite.env.load() {
         msg.err "error while loading suite ${1}"
         return 42
     fi
-    }
+}
 
 lxc.suite.env.load-file() {
 
@@ -79,18 +79,17 @@ lxc.suite.info() {
     echo -e "suite: ${LXC_SUITE_NAME}"
     echo -e "       ${LXC_SUITE_INIT}"
     (
-    echo -e "instance image remote status IPv4 adapter PID snapshots base-image"
-    for ((i=0; i<${#LXC_SUITE_INSTANCES[@]}; i+=2)); do
-        readarray -t status < <(lxc.instance.get "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i+1]}" s4pSf)
-        # status="${status:--}"
-        echo -e "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i+1]}"\
-             " ${LXC_SUITE_INSTANCES[i+1]}"\
-             " ${LXC_SUITE_INSTANCES[i]}" \
-             " ${status[@]}"
-    done
+        echo -e "instance image remote status IPv4 adapter PID snapshots base-image"
+        for ((i = 0; i < ${#LXC_SUITE_INSTANCES[@]}; i += 2)); do
+            readarray -t status < <(lxc.instance.get "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i + 1]}" s4pSf)
+            # status="${status:--}"
+            echo -e "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i + 1]}" \
+                " ${LXC_SUITE_INSTANCES[i + 1]}" \
+                " ${LXC_SUITE_INSTANCES[i]}" \
+                " ${status[@]}"
+        done
     ) | column -t
 }
-
 
 lxc.suite.build.help() {
     $FMT <<EOF
@@ -109,8 +108,8 @@ lxc.suite.build() {
     [ -z "${image_name}" ] && msg.err "missing image <name>" && return 42
 
     if [ "${image_name}" = "all" ]; then
-        for ((i=0; i<${#LXC_SUITE_INSTANCES[@]}; i+=2)); do
-            lxc.suite._build "${LXC_SUITE_INSTANCES[i+1]}"
+        for ((i = 0; i < ${#LXC_SUITE_INSTANCES[@]}; i += 2)); do
+            lxc.suite._build "${LXC_SUITE_INSTANCES[i + 1]}"
         done
     else
         lxc.suite._build "${1}"
@@ -122,10 +121,10 @@ lxc.suite._build() {
     local image_name="${1}"
     local instance_name remote_name
 
-    for ((i=0; i<${#LXC_SUITE_INSTANCES[@]}; i+=2)); do
-        if [ "${LXC_SUITE_INSTANCES[i+1]}" = "${image_name}" ]; then
+    for ((i = 0; i < ${#LXC_SUITE_INSTANCES[@]}; i += 2)); do
+        if [ "${LXC_SUITE_INSTANCES[i + 1]}" = "${image_name}" ]; then
             remote_name="${LXC_SUITE_INSTANCES[i]}"
-            instance_name="${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i+1]}"
+            instance_name="${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i + 1]}"
             break
         fi
     done
@@ -158,8 +157,8 @@ lxc.suite.del() {
     [ -z "${image_name}" ] && msg.err "missing image <name>" && return 42
 
     if [ "${image_name}" = "all" ]; then
-        for ((i=0; i<${#LXC_SUITE_INSTANCES[@]}; i+=2)); do
-            lxc.instance.del "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i+1]}"
+        for ((i = 0; i < ${#LXC_SUITE_INSTANCES[@]}; i += 2)); do
+            lxc.instance.del "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i + 1]}"
             echo $?
         done
     else
@@ -182,12 +181,13 @@ lxc.suite.init() {
     [ -z "${init_script}" ] && msg.err "missing <init-script>" && return 42
     ! [ -f "${init_script}" ] && msg.err "init-script not exists: ${init_script}" && return 42
 
-    (   set -e
+    (
+        set -e
         lxc.instance.start "${LXC_SUITE_NAME}-${image_name}"
         msg.info "[lxc.suite.init] execute init script ${init_script} in ${LXC_SUITE_NAME}-${image_name}"
         lxc.lxcenv.write "${LXC_SUITE_NAME}-${image_name}"
-        < "${init_script}" incus exec "${LXC_SUITE_NAME}-${image_name}" -- bash \
-            |& msg.prefix "[${_BBlue}${LXC_SUITE_NAME}-${image_name}${_creset}] "
+        <"${init_script}" incus exec "${LXC_SUITE_NAME}-${image_name}" -- bash |&
+            msg.prefix "[${_BBlue}${LXC_SUITE_NAME}-${image_name}${_creset}] "
         exit "${PIPESTATUS[0]}"
     )
     sh.prompt-err $?
@@ -210,8 +210,8 @@ lxc.suite.start() {
     [ -z "${image_name}" ] && msg.err "missing image <name>" && return 42
 
     if [ "${image_name}" = "all" ]; then
-        for ((i=0; i<${#LXC_SUITE_INSTANCES[@]}; i+=2)); do
-            lxc.instance.start "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i+1]}"
+        for ((i = 0; i < ${#LXC_SUITE_INSTANCES[@]}; i += 2)); do
+            lxc.instance.start "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i + 1]}"
         done
     else
         lxc.instance.start "${LXC_SUITE_NAME}-${image_name}"
@@ -235,8 +235,8 @@ lxc.suite.stop() {
     [ -z "${image_name}" ] && msg.err "missing image <name>" && return 42
 
     if [ "${image_name}" = "all" ]; then
-        for ((i=0; i<${#LXC_SUITE_INSTANCES[@]}; i+=2)); do
-            lxc.instance.stop "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i+1]}"
+        for ((i = 0; i < ${#LXC_SUITE_INSTANCES[@]}; i += 2)); do
+            lxc.instance.stop "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i + 1]}"
         done
     else
         lxc.instance.stop "${LXC_SUITE_NAME}-${image_name}"
@@ -256,22 +256,25 @@ EOF
 lxc.suite.exec() {
     lxc.suite.env.missed
 
-    local image_name="${1}"; shift
+    local image_name="${1}"
+    shift
     [ -z "${image_name}" ] && msg.err "missing image <name>" && return 42
 
     if [ "${image_name}" = "all" ]; then
-        for ((i=0; i<${#LXC_SUITE_INSTANCES[@]}; i+=2)); do
-            lxc.suite._exec --force-interactive "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i+1]}" "$@"
+        for ((i = 0; i < ${#LXC_SUITE_INSTANCES[@]}; i += 2)); do
+            lxc.suite._exec --force-interactive "${LXC_SUITE_NAME}-${LXC_SUITE_INSTANCES[i + 1]}" "$@"
         done
     else
         lxc.suite._exec --force-interactive "${LXC_SUITE_NAME}-${image_name}" "$*"
     fi
 }
 
-lxc.suite._exec() {    # FIXME: needs more work  !!!!!!!!!!!
+lxc.suite._exec() { # FIXME: needs more work  !!!!!!!!!!!
 
-    local lxc_interactive="${1}"; shift
-    local instance_name="${1}"; shift
+    local lxc_interactive="${1}"
+    shift
+    local instance_name="${1}"
+    shift
     local guest_folder="${LXC_GUEST_MOUNT}"
     local exit_val=0
 
@@ -281,10 +284,10 @@ lxc.suite._exec() {    # FIXME: needs more work  !!!!!!!!!!!
     #     --cwd "${guest_lxc_suites_folder}" \
     #     -- "$@"
     incus exec "${instance_name}" "${lxc_interactive}" \
-          --env "FORCE_TIMEOUT=${FORCE_TIMEOUT}" \
-          --env "LXC_SUITE_NAME=${LXC_SUITE_NAME}" \
-          --cwd "${guest_folder}" \
-          -- bash -c "$*"
+        --env "FORCE_TIMEOUT=${FORCE_TIMEOUT}" \
+        --env "LXC_SUITE_NAME=${LXC_SUITE_NAME}" \
+        --cwd "${guest_folder}" \
+        -- bash -c "$*"
     exit_val=$?
 
     if [[ $exit_val -ne 0 ]]; then

@@ -4,7 +4,7 @@
 # shellcheck source=./lib_tui.sh
 . /dev/null
 
-_REQUIREMENTS=( "${_REQUIREMENTS[@]}" readarray)
+_REQUIREMENTS=("${_REQUIREMENTS[@]}" readarray)
 
 LXC_ROOT_FOLDER="${LXC_ROOT_FOLDER:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)}"
 
@@ -21,7 +21,6 @@ LXC_HOST_USER="${SUDO_USER:-$USER}"
 LXC_HOST_USER_ID=$(id -u "${LXC_HOST_USER}")
 LXC_HOST_GROUP_ID=$(id -g "${LXC_HOST_USER}")
 
-
 # lxc-incus.init() {
 #     # FIXME: what, when we are in a LXC instance?
 #     true
@@ -32,9 +31,7 @@ lxc.base.install() {
 }
 
 lxc.base.packages() {
-    echo -e "\npackages::\n"
-    # shellcheck disable=SC2068
-    echo "  ${LXC_BASE_PACKAGES[*]}" | $FMT
+    dist.pkg.show "${LXC_BASE_PACKAGES[@]}"
 }
 
 lxc.image.copy.help() {
@@ -59,7 +56,7 @@ lxc.image.copy() {
     else
         msg.info "copy image to local image server // ${remote_name} --> ${local_name}"
         # incus shows progress on stdout / no msg.prefix here
-        incus image copy "${remote_name}" local: --alias  "${local_name}"
+        incus image copy "${remote_name}" local: --alias "${local_name}"
     fi
 }
 
@@ -93,7 +90,7 @@ lxc.image.del.local() {
 
     incus image list "local:$1"
     for line in $(incus image list "local:$1" --format csv --columns f,l); do
-    IFS=, read -r f l <<<"$line"
+        IFS=, read -r f l <<<"$line"
         if ui.yes-no "Do you want to delete image $f ($l)?" Ny 10; then
             msg.info "delete image $f ($l)"
             incus image delete "$f" -v
@@ -159,15 +156,15 @@ lxc.instance.del() {
     local instance_name="$1"
 
     if [ -z "${instance_name}" ]; then
-    incus list --columns n,p,d,s,c,4,6
-    for line in $(incus list --format csv --columns n); do
-        IFS=, read -r instance_name <<<"$line"
-        if ui.yes-no "Do you want to delete instance ${_BBlue}${instance_name}${_creset}?" Ny 10; then
-            msg.info "stop & delete instance ${_BBlue}${instance_name}${_creset}"
-            incus stop --force "${instance_name}" &>/dev/null
-            incus delete "${instance_name}" -v
-        fi
-    done
+        incus list --columns n,p,d,s,c,4,6
+        for line in $(incus list --format csv --columns n); do
+            IFS=, read -r instance_name <<<"$line"
+            if ui.yes-no "Do you want to delete instance ${_BBlue}${instance_name}${_creset}?" Ny 10; then
+                msg.info "stop & delete instance ${_BBlue}${instance_name}${_creset}"
+                incus stop --force "${instance_name}" &>/dev/null
+                incus delete "${instance_name}" -v
+            fi
+        done
 
     elif lxc.instance.exists "${instance_name}" &>/dev/null; then
         msg.info "stop & delete instance ${_BBlue}${instance_name}${_creset}"
@@ -196,9 +193,9 @@ lxc.instance.start() {
     local instance_name="${1}"
     [ -z "${instance_name}" ] && msg.err "missing instance <name>" && return 42
 
-    ! lxc.instance.exists "${instance_name}" \
-        && msg.err "unknown container: ${instance_name}" \
-        && return 42
+    ! lxc.instance.exists "${instance_name}" &&
+        msg.err "unknown container: ${instance_name}" &&
+        return 42
     local wait_sec="${2:-10}"
     local status
 
@@ -229,9 +226,9 @@ lxc.instance.stop() {
 
     local instance_name="$1"
     [ -z "${instance_name}" ] && msg.err "missing instance <name>" && return 42
-    ! lxc.instance.exists "${instance_name}" \
-        && msg.err "unknown container: ${instance_name}" \
-        && return 42
+    ! lxc.instance.exists "${instance_name}" &&
+        msg.err "unknown container: ${instance_name}" &&
+        return 42
 
     local status
     status="$(lxc.instance.get "${instance_name}" s)"
@@ -263,7 +260,7 @@ lxc.instance.get() {
     [ -z "${instance_name}" ] && msg.err "missing instance <name>" && return 42
     shift
 
-    out="$(incus list name="${instance_name}"  -c "$*" -f csv 2>&1)"
+    out="$(incus list name="${instance_name}" -c "$*" -f csv 2>&1)"
     exit_code=$?
     if [ ${exit_code} -ne 0 ]; then
         sh.die.err 42 "lxc.instance.get: $out"
@@ -272,12 +269,11 @@ lxc.instance.get() {
         msg.debug "lxc.instance.get: instance ${instance_name} is unknown"
         return 42
     fi
-    IFS=',' read -ra ADDR <<< "${out}"
+    IFS=',' read -ra ADDR <<<"${out}"
     for v in "${ADDR[@]}"; do
         echo "${v}"
     done
 }
-
 
 lxc.instance.internet.help() {
     $FMT <<EOF
@@ -325,8 +321,8 @@ lxc.instance.configure() {
     # https://linuxcontainers.org/incus/docs/main/userns-idmap/#custom-idmaps
     #
     msg.info "[${_BBlue}${instance_name}${_creset}] map uid/gid from host to container"
-    echo -e -n "uid ${LXC_HOST_USER_ID} 0\\ngid ${LXC_HOST_GROUP_ID} 0"\
-        | incus config set "${instance_name}" raw.idmap -
+    echo -e -n "uid ${LXC_HOST_USER_ID} 0\\ngid ${LXC_HOST_GROUP_ID} 0" |
+        incus config set "${instance_name}" raw.idmap -
 
     lxc.instance.share "${instance_name}" "${LXC_ROOT_FOLDER}" "$(basename "${LXC_ROOT_FOLDER_GUEST}")"
 }
@@ -372,7 +368,7 @@ lxc.instance.share() {
     local source
     if incus config device get "${instance_name}" "${guest_folder}" source &>/dev/null; then
         source="$(incus config device get "${instance_name}" "${guest_folder}" source)"
-        if [[ "${host_folder}" -ef "${source}" ]]; then
+        if [[ ${host_folder} -ef ${source} ]]; then
             msg.info "device ${guest_folder} already exists"
         else
             msg.err "device ${guest_folder} already exists but points to ${source}"
@@ -380,8 +376,8 @@ lxc.instance.share() {
         fi
     else
         incus config device add "${instance_name}" "${guest_folder}" disk \
-              source="${host_folder}" \
-              path="${guest_folder}"
+            source="${host_folder}" \
+            path="${guest_folder}"
     fi
     if [ "${V}" -ge 3 ]; then
         incus config show "${instance_name}"

@@ -1,15 +1,20 @@
 # -*- mode: sh; sh-shell: bash -*-
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-DIST_ID=$(source /etc/os-release; echo "${ID}");
-DIST_VERS=$(source /etc/os-release; echo "${VERSION_ID}");
+DIST_ID=$(
+    source /etc/os-release
+    echo "${ID}"
+)
+DIST_VERS=$(
+    source /etc/os-release
+    echo "${VERSION_ID}"
+)
 DIST_NAME="${DIST_ID}-${DIST_VERS}"
 if [ -z "${DIST_VERS}" ]; then
     DIST_NAME="${DIST_ID}"
 fi
 
 dist.init() {
-
     # ubuntu, debian, arch, fedora, centos ...
     dist.pkg.defs
 }
@@ -19,53 +24,58 @@ dist.pkg.defs() {
     # set package definitions
 
     case ${DIST_ID} in
-    ubuntu|debian)
-        # apt packages
-        DIST_MIN_PACKAGES=(bash git curl wget python3)
-        DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" python3-venv build-essential jq)
-        ;;
-    arch)
+        ubuntu | debian)
+            # apt packages
+            DIST_MIN_PACKAGES=(bash git curl python3 python3.13-venv)
+            DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" build-essential)
+            ;;
+        arch)
             # pacman packages
-        DIST_MIN_PACKAGES=(bash git curl wget)
-        DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" base-devel jq)
-        ;;
-    fedora|centos)
-        # dnf packages / yum is old, buggy and not supported here in lib_dist.sh !!!
-        DIST_MIN_PACKAGES=(bash git curl wget)
-        DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" @development-tools jq)
-        ;;
-    void)
-        DIST_MIN_PACKAGES=(bash git curl wget)
-        DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" base-devel jq)
-        ;;
-    *)
-        sh.die.err 42 "lib_dist.sh: ${DIST_NAME} not yet implemented" ;;
+            DIST_MIN_PACKAGES=(bash git curl python)
+            DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" base-devel)
+            ;;
+        fedora | centos)
+            # dnf packages / yum is old, buggy and not supported here in lib_dist.sh !!!
+            DIST_MIN_PACKAGES=(bash git curl python)
+            DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" @development-tools)
+            ;;
+        void)
+            DIST_MIN_PACKAGES=(bash git curl python)
+            DIST_DEV_PACKAGES=("${DIST_MIN_PACKAGES[@]}" base-devel)
+            ;;
+        *)
+            sh.die.err 42 "lib_dist.sh: ${DIST_NAME} not yet implemented"
+            ;;
     esac
 }
 
 # shellcheck disable=SC2034
 DIST_DEV_PACKAGES=()
 
-
 # distro's package manager
 # ------------------------
 
 _dist_pkg_info_is_updated=0
+
+dist.pkg.show() {
+    # usage: dist.pkg.show foo bar
+    echo -e "\npackage(s)::"
+    # shellcheck disable=SC2068
+    echo "  $*" | ${FMT}
+}
 
 dist.pkg.install() {
 
     # usage: TITLE='install packages foo and bar' dist.pkg.install foo bar
 
     msg.title "${TITLE:-installation of packages}" section
-    echo -e "\npackage(s)::\n"
-    # shellcheck disable=SC2068
-    echo "  $*" | ${FMT}
+    dist.pkg.show "$@"
 
     if ! ui.yes-no "Should packages be installed?" Yn 30; then
         return 42
     fi
     case ${DIST_ID} in
-        ubuntu|debian)
+        ubuntu | debian)
             if [[ ${_dist_pkg_info_is_updated} == 0 ]]; then
                 export __dist_pkg_info_is_updated=1
                 apt update
@@ -75,7 +85,7 @@ dist.pkg.install() {
         arch)
             pacman --noprogressbar -Sy --noconfirm --needed "$@"
             ;;
-        fedora|centos)
+        fedora | centos)
             dnf install -y "$@"
             ;;
         void)
@@ -97,13 +107,13 @@ dist.pkg.remove() {
         return 42
     fi
     case ${DIST_ID} in
-        ubuntu|debian)
+        ubuntu | debian)
             apt-get purge --autoremove --ignore-missing -y "$@"
             ;;
         arch)
             pacman --noprogressbar -R --noconfirm "$@"
             ;;
-        fedora|centos)
+        fedora | centos)
             dnf remove -y "$@"
             ;;
         void)
@@ -117,20 +127,20 @@ dist.pkg.is-installed() {
     # usage: dist.pkg.is-installedl foopkg || dist.pkg.install foopkg
 
     case ${DIST_ID} in
-        ubuntu|debian)
-            dpkg -l "$1" &> /dev/null
+        ubuntu | debian)
+            dpkg -l "$1" &>/dev/null
             return $?
             ;;
         arch)
-            pacman -Qsq "$1" &> /dev/null
+            pacman -Qsq "$1" &>/dev/null
             return $?
             ;;
-        fedora|centos)
-            dnf list -q --installed "$1" &> /dev/null
+        fedora | centos)
+            dnf list -q --installed "$1" &>/dev/null
             return $?
             ;;
         void)
-        xbps-query -S "$@"  &> /dev/null
+            xbps-query -S "$@" &>/dev/null
             return $?
             ;;
     esac

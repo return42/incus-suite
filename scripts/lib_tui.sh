@@ -16,7 +16,7 @@ tui.colors() {
     _hide_cursor='\e[?25l'
 
     # SGR (Select Graphic Rendition) parameters
-    _creset='\e[0m'  # reset all attributes
+    _creset='\e[0m' # reset all attributes
 
     # original specification only had 8 colors
     _colors=8
@@ -41,7 +41,7 @@ tui.colors() {
 }
 
 stdin.clean() {
-    while read -r -n1 -t 0.1; do : ; done
+    while read -r -n1 -t 0.1; do :; done
 }
 
 ui.press-key() {
@@ -54,7 +54,7 @@ ui.press-key() {
     stdin.clean
     local _t=$1
     local msg="${MSG}"
-    [[ -z "$msg" ]] && msg="${_Green}** press any [${_BCyan}KEY${_Green}] to continue **${_creset}"
+    [[ -z $msg ]] && msg="${_Green}** press any [${_BCyan}KEY${_Green}] to continue **${_creset}"
 
     [[ -n $FORCE_TIMEOUT ]] && _t=$FORCE_TIMEOUT
     [[ -n $_t ]] && _t="-t $_t"
@@ -105,7 +105,8 @@ ui.yes-no() {
         # shellcheck disable=SC2086,SC2229
         read -r -n1 $_t
         if [[ -z ${REPLY} ]]; then
-            echo "${default}"; break
+            echo "${default}"
+            break
         elif [[ ${REPLY} =~ ^[Yy]$ ]]; then
             exit_val=${EXIT_YES}
             echo

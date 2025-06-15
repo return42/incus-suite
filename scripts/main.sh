@@ -2,7 +2,7 @@
 # -*- mode: sh; sh-shell: bash -*-
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-_REQUIREMENTS=( "${_REQUIREMENTS[@]}" )
+_REQUIREMENTS=("${_REQUIREMENTS[@]}")
 SH_LIB_PATH="$(dirname "${BASH_SOURCE[0]}")"
 
 MAIN="$(basename "$0")"
@@ -81,7 +81,7 @@ main.source.config() {
         cfg="/etc/${1}"
     else
         cfg="$(cd "$(dirname "${BASH_SOURCE[0]}")/../etc" && pwd -P)/${1}"
-        if [[ ! -e "${cfg}" ]]; then
+        if [[ ! -e ${cfg} ]]; then
             unset cfg
         fi
     fi
@@ -107,7 +107,7 @@ main.cmd_list() {
     local grp grp_cmds grp_name cmd
     for grp in "${MAIN_CMD_LIST[@]}"; do
         grp_name=''
-        read -r -a grp_cmds <<< "${grp}"
+        read -r -a grp_cmds <<<"${grp}"
         if [[ ${grp_cmds[0]} == *: ]]; then
             grp_name="${grp_cmds[0]}"
             grp_name="${grp_name%:}"
@@ -158,7 +158,8 @@ main() {
 
     scripts.requires "${_REQUIREMENTS[@]}" || sh.die.err $? "first install missing requirements"
     local _type
-    local cmd="$1"; shift
+    local cmd="$1"
+    shift
 
     [ "${V}" -ge 5 ] && set -x
 
@@ -172,8 +173,11 @@ main() {
     MAIN_CMD="${cmd}"
 
     case "$cmd" in
-        --getenv) var="$1"; echo "${!var}";;
-        --help) help;;
+        --getenv)
+            var="$1"
+            echo "${!var}"
+            ;;
+        --help) help ;;
         --*)
             help
             msg.err "unknown option $cmd"

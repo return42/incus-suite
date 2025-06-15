@@ -50,7 +50,6 @@ sh.die.err() {
     exit "${1-1}"
 }
 
-
 ## Management of the shell libraries
 
 SH_LIB_PATH="$(dirname "${BASH_SOURCE[0]}")"

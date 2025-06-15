@@ -4,25 +4,65 @@
 # export LANG=C
 PRJ_ROOT="$(dirname "${BASH_SOURCE[0]}")"
 PRJ_ROOT="$(cd "${PRJ_ROOT}" && pwd -P)"
-
 # shellcheck source=scripts/main.sh
 source "${PRJ_ROOT}/scripts/main.sh"
 
+# shellcheck source=./lib_py.sh
+. /dev/null
 sh.lib.import py
 
+# shellcheck source=./lib_dist.sh
+. /dev/null
+sh.lib.import dist
+
+# commands needed for the developer environment
+PRJ_DEV_REQUIREMENTS=(bash git shfmt)
+# packages that provide these commands
+PRJ_DEV_PACKAGES=(
+    "${DIST_DEV_PACKAGES[@]}"
+    shfmt
+)
+
 MAIN_CMD_LIST=(
-    "env: env.build"
+    "prepare"
+    "env: env.build env.drop"
     "cmd"
     "test: test.bin test.suites"
     "shell"
 )
 
-env.build.help() { echo "build project's developer environment"; }
+# prepare
+# -------
+
+prepare.help() {
+    $FMT <<EOF
+install tools required by ${MAIN} (sudo)
+
+usage:
+  ${MAIN} ${MAIN_CMD}
+
+To install packages from ${DIST_ID}'s package manager, super user privileges are
+needed (sudo/su).
+EOF
+    dist.pkg.show "${PRJ_DEV_PACKAGES[@]}"
+}
+
+prepare() {
+  TITLE="Install tools required by ${MAIN}" dist.pkg.install "${PRJ_DEV_PACKAGES[@]}"
+
+}
+
+# env
+# ---
+
+env.build.help()  { echo "build project's developer environment"; }
 env.build() {
+    scripts.requires "${PRJ_DEV_REQUIREMENTS[@]}" \
+        || sh.die.err $? "first install missing requirements, use '${MAIN} prepare --help' for more info"
+
     py.env.build
     # https://setuptools.pypa.io/en/latest/userguide/development_mode.html
     "${PY_VENV}/bin/pip" install -e ".[dev,test]"
-
     env.build.post
 }
 
@@ -30,11 +70,19 @@ env.build.post() {
     env.source
 }
 
+env.drop.help()  { echo "remove artifacts from the local developer environment"; }
+env.drop()  {
+    py.env.drop
+}
+
 env.source() {
     py.env.activate
     echo "" > /dev/null
 }
 
+
+# cmd
+# ---
 
 cmd.help() { echo "run command in project's environment"; }
 cmd() {
@@ -54,6 +102,9 @@ clean() {
     )
     sh.prompt-err $?
 }
+
+# test
+# ----
 
 test.help() {
     $FMT <<EOF
@@ -115,6 +166,9 @@ test.suites() {
     )
     sh.prompt-err $?
 }
+
+# shell
+# -----
 
 shell.help() { echo "start a shell in project's environment"; }
 shell() {

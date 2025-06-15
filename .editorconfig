@@ -22,13 +22,12 @@ indent_size = 8
 indent_style = space
 indent_size = 4
 
-[*.sh]
+[{*.sh,*.env,prj,lxc-suite}]
 indent_style = space
 indent_size = 4
 
-[*.env]
-indent_style = space
-indent_size = 4
+shell_variant  = bash
+switch_case_indent = true
 
 [*.rst]
 indent_style = space

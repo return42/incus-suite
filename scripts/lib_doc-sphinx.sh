@@ -26,20 +26,22 @@ DOC_BUILD="${DOC_BUILD:=build/doc}"
 
 doc.html() {
     msg.build SPHINX "HTML ${DOC_SRC} --> file://$(readlink -e "$(pwd)/${DOC_DIST}")"
-    (   set -e
-    py.env.activate
-    doc.prebuild
-    # shellcheck disable=SC2086
-    sphinx-build \
-        ${SPHINX_VERBOSE} ${SPHINX_OPTS} \
-        -b html -c "${DOC_SRC}" -d "${DOC_BUILD}/.doctrees" "${DOC_SRC}" "${DOC_DIST}"
+    (
+        set -e
+        py.env.activate
+        doc.prebuild
+        # shellcheck disable=SC2086
+        sphinx-build \
+            ${SPHINX_VERBOSE} ${SPHINX_OPTS} \
+            -b html -c "${DOC_SRC}" -d "${DOC_BUILD}/.doctrees" "${DOC_SRC}" "${DOC_DIST}"
     )
     sh.prompt-err $?
 }
 
 doc.live() {
     msg.build SPHINX "autobuild ${DOC_SRC} --> file://$(readlink -e "$(pwd)/${DOC_DIST}")"
-    (   set -e
+    (
+        set -e
         py.env.activate
         doc.prebuild
         # shellcheck disable=SC2086
@@ -95,24 +97,24 @@ doc.gh-pages() {
     (
         git worktree remove -f "${GH_PAGES}"
         git branch -D gh-pages
-    ) &> /dev/null  || true
+    ) &>/dev/null || true
     git worktree add --no-checkout "${GH_PAGES}" "${remote}/master"
 
-    pushd "${GH_PAGES}" &> /dev/null || return 42
+    pushd "${GH_PAGES}" &>/dev/null || return 42
     git checkout --orphan gh-pages
     git rm -rfq .
-    popd &> /dev/null || return 42
+    popd &>/dev/null || return 42
 
     cp -r "${DOC_DIST}"/* "${GH_PAGES}"/
     touch "${GH_PAGES}/.nojekyll"
-    cat > "${GH_PAGES}/404.html" <<EOF
+    cat >"${GH_PAGES}/404.html" <<EOF
 <html><head><META http-equiv='refresh' content='0;URL=index.html'></head></html>
 EOF
-    pushd "${GH_PAGES}" &> /dev/null  || return 42
+    pushd "${GH_PAGES}" &>/dev/null || return 42
     git add --all .
     git commit -q -m "gh-pages build from: ${branch}@${head} (${remote_url})"
     git push -f "${remote}" gh-pages
-    popd &> /dev/null  || return 42
+    popd &>/dev/null || return 42
 
     [ "${V}" -ge 2 ] && set +x
     msg.build GH-PAGES "deployed"

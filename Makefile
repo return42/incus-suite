@@ -21,6 +21,9 @@ clean::
 		-name '*.orig' -o -name '*.rej' -o -name '*~' -o -name '*.bak' \
 	\) -exec rm -f {} +
 
+fmt::
+	shfmt -w scripts/ ./scripts/ ./bin/ ./suites/
+
 
 # run make in subdirectories
 # --------------------------
