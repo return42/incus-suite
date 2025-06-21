@@ -1,6 +1,11 @@
 # -*- mode: sh; sh-shell: bash -*-
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+SH_LIB_PATH="$(dirname "${BASH_SOURCE[0]}")"
+
+# shellcheck source=./lib_sh.sh
+source "${SH_LIB_PATH}/lib_sh.sh"
+
 # shellcheck source=./lib_templates.sh
 . /dev/null
 

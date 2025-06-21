@@ -184,10 +184,12 @@ lxc.suite.init() {
     (
         set -e
         lxc.instance.start "${LXC_SUITE_NAME}-${image_name}"
-        msg.info "[lxc.suite.init] execute init script ${init_script} in ${LXC_SUITE_NAME}-${image_name}"
         lxc.lxcenv.write "${LXC_SUITE_NAME}-${image_name}"
+
+        msg.info "[lxc.suite.init] execute init script ${init_script} in ${LXC_SUITE_NAME}-${image_name}"
         <"${init_script}" incus exec "${LXC_SUITE_NAME}-${image_name}" -- bash |&
             msg.prefix "[${_BBlue}${LXC_SUITE_NAME}-${image_name}${_creset}] "
+
         exit "${PIPESTATUS[0]}"
     )
     sh.prompt-err $?
