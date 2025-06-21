@@ -16,8 +16,12 @@
 
 # shellcheck source=/dev/null
 source /.lxcenv
+
 sh.lib.import dist
 sh.lib.import msg
+
+
+# shellcheck source=../../scripts/lib_tui.sh
 
 exe() {
     echo -e "${_BRed}\$ ${_Blue}${*}${_creset}"
@@ -32,23 +36,6 @@ exe() {
             exe apt-get update -y
             exe apt-get upgrade -y
             exe apt-get install -y sudo "${DIST_DEV_PACKAGES[@]}"
-            echo 'Set disable_coredump false' >>/etc/sudo.conf
-            ;;
-        arch)
-            # FIXME: while updating the packages, udevadm reports a lot of
-            # errors in an unprivileged container.  To reproduce::
-            #
-            #  $ incus exec lxc-arch -- udevadm trigger
-            #
-            # https://github.com/systemd/systemd/issues/13652
-
-            exe pacman --noprogressbar -Syu --noconfirm
-            exe pacman --noprogressbar -S --noconfirm sudo inetutils "${DIST_DEV_PACKAGES[@]}"
-            echo 'Set disable_coredump false' >>/etc/sudo.conf
-            ;;
-        fedora | centos)
-            exe dnf update -y
-            exe dnf install -y sudo hostname "${DIST_DEV_PACKAGES[@]}"
             echo 'Set disable_coredump false' >>/etc/sudo.conf
             ;;
         void)

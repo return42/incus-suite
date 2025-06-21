@@ -88,7 +88,7 @@ if [ ! -p /dev/stdout ] && [ ! "${TERM}" = 'dumb' ] && [ ! "${TERM}" = 'unknown'
 fi
 
 msg.debug() {
-    if [ "${V}" -ge 3 ]; then
+    if [ "${V:-0}" -ge 3 ]; then
         echo -e "${_BYellow}DEBUG:${_creset} $*" >&2
     fi
 }

@@ -18,7 +18,7 @@ fi
 # The msg.debug is only printed on verbose level $V >= 3
 
 msg.debug() {
-    if [ "${V}" -ge 3 ]; then
+    if [ "${V:-0}" -ge 3 ]; then
         echo -e "${_BYellow}DEBUG:${_creset} $*" >&2
     fi
 }

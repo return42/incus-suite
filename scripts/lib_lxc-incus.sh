@@ -391,7 +391,7 @@ lxc.instance.mount() {
             source="${host_folder}" \
             path="${guest_folder}"
     fi
-    if [ "${V}" -ge 3 ]; then
+    if [ "${V:-0}" -ge 3 ]; then
         incus config show "${instance_name}"
         ui.press-key 10
     fi
@@ -442,7 +442,7 @@ lxc.instance.unmount() {
     else
         msg.err "device ${guest_folder} does not exists"
     fi
-    if [ "${V}" -ge 3 ]; then
+    if [ "${V:-0}" -ge 3 ]; then
         incus config show "${instance_name}"
         ui.press-key 10
     fi

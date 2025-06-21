@@ -36,8 +36,7 @@ instance.mount() { lxc.instance.mount "$@"; }
 instance.unmount.help() { lxc.instance.unmount.help; }
 instance.unmount() { lxc.instance.unmount "$@"; }
 
-# FIXME: make loading the environment generic
-lxc.suite.env.load lxc
+lxc.suite.env.load "${LXC_DEFAULT_SUITE}"
 
 suite.info.help() { lxc.suite.info.help; }
 suite.info() { lxc.suite.info "$@"; }

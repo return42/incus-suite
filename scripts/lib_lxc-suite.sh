@@ -50,7 +50,7 @@ lxc.suite.env.load-file() {
     msg.debug "load suite's environment from: ${1}"
     source "${1}"
     local err=$?
-    [ "${V}" -ge 3 ] && lxc.suite.info | msg.prefix "${_BYellow}DEBUG:${_creset} " >&2
+    [ "${V:-0}" -ge 3 ] && lxc.suite.info | msg.prefix "${_BYellow}DEBUG:${_creset} " >&2
     sh.prompt-err "$err"
 }
 
@@ -184,10 +184,12 @@ lxc.suite.init() {
     (
         set -e
         lxc.instance.start "${LXC_SUITE_NAME}-${image_name}"
-        msg.info "[lxc.suite.init] execute init script ${init_script} in ${LXC_SUITE_NAME}-${image_name}"
         lxc.lxcenv.write "${LXC_SUITE_NAME}-${image_name}"
+
+        msg.info "[lxc.suite.init] execute init script ${init_script} in ${LXC_SUITE_NAME}-${image_name}"
         <"${init_script}" incus exec "${LXC_SUITE_NAME}-${image_name}" -- bash |&
             msg.prefix "[${_BBlue}${LXC_SUITE_NAME}-${image_name}${_creset}] "
+
         exit "${PIPESTATUS[0]}"
     )
     sh.prompt-err $?
@@ -296,7 +298,7 @@ lxc.suite._exec() { # FIXME: needs more work  !!!!!!!!!!!
     shift
     local exit_val=0
 
-    msg.info "[${_BBlue}${instance_name}${_creset}] ${_BGreen}export FORCE_TIMEOUT=${FORCE_TIMEOUT} LXC_SUITE_NAME=${LXC_SUITE_NAME}{_creset}"
+    msg.info "[${_BBlue}${instance_name}${_creset}] ${_BGreen}export FORCE_TIMEOUT=${FORCE_TIMEOUT} LXC_SUITE_NAME=${LXC_SUITE_NAME}${_creset}"
     msg.info "[${_BBlue}${instance_name}${_creset}] ${_BGreen}${*}${_creset}"
     # incus exec "${instance_name}" "${lxc_interactive}" \
     #     --cwd "${guest_lxc_suites_folder}" \

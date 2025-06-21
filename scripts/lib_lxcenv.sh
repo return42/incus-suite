@@ -1,10 +1,15 @@
 # -*- mode: sh; sh-shell: bash -*-
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# shellcheck source=./lib_templates.sh
+SH_LIB_PATH="$(dirname "${BASH_SOURCE[0]}")"
+
+# shellcheck source=./lib_sh.sh
+source "${SH_LIB_PATH}/lib_sh.sh"
+
+# shellcheck source=./lib_template.sh
 . /dev/null
 
-sh.lib.import templates
+sh.lib.import template
 
 lxc.lxcenv() {
 
